@@ -1,54 +1,31 @@
-from EngineClasification import Clasificacion, ProcesoFact, InspeccionFact as InspeccionFactClasif
+# Contenido de: main.py
+
+# Importamos el nuevo hecho 'ClasificacionFact'
+from EngineClasification import Clasificacion, ProcesoFact, InspeccionFact as InspeccionFactClasif, ClasificacionFact
 from EngineDiagnosis import MotorDiagnostico, InspeccionFact as InspeccionFactDiag, Diagnostico
 from EngineCauses import MotorCausas, DiagnosticoFact, ProcesoFact as ProcesoFactCausa, CausaProbable
-from EngineRecomendations import MotorRecomendaciones, CausaProbableFact
+# Importamos 'Recomendacion' para poder capturarla
+from EngineRecomendations import MotorRecomendaciones, CausaProbableFact, Recomendacion
 from base import DatosInspeccion, DatosProceso, Soldadura, calcular_tamaño_relativo
 
-
-def main():
-    print("=== Sistema Experto de Diagnóstico de Soldadura ===")
-
-    # ----- Datos hardcodeados del proceso -----
-    tipo_gas = "Argón"
-    flujo_gas = 12.5
-    material_base = "Acero inoxidable"
-    tipo_junta = "V-groove"
-    metodo_soldadura = "GTAW"
-
-    datos_proceso = DatosProceso(
-        tipo_gas=tipo_gas,
-        flujo_gas_l_min=flujo_gas,
-        material_base=material_base,
-        tipo_junta=tipo_junta,
-        metodo_soldadura=metodo_soldadura
-    )
-
-    # ----- Datos hardcodeados de inspección -----
-    tipo_defecto = "porosidad"
-    x_min, y_min = 10, 20
-    x_max, y_max = 80, 120
-    area_soldadura = 10000
-    confianza = 0.92
-    multiples_defectos = False
+# --- FUNCIÓN PRINCIPAL REFACTORIZADA ---
+# Ya no se llama main(), y recibe los datos como parámetros
+def ejecutar_sistema_experto(datos_inspeccion: DatosInspeccion, datos_proceso: DatosProceso):
     
-    # ----- Preprocesamiento de R con datos de Boxplotting -----
-    R = calcular_tamaño_relativo(x_min, y_min, x_max, y_max, area_soldadura)
-
-    datos_inspeccion = DatosInspeccion(
-        tipo_defecto=tipo_defecto,
-        tamaño_relativo=R,
-        confianza=confianza,
-        multiples_defectos=multiples_defectos
-    )
-
-    soldadura = Soldadura(id_soldadura="S001", inspeccion=datos_inspeccion, proceso=datos_proceso)
-
-    print("\n=== Datos de entrada ===")
-    print(soldadura)
+    # Extraer datos crudos de los objetos de entrada
+    tipo_defecto = datos_inspeccion.tipo_defecto
+    R = datos_inspeccion.tamaño_relativo
+    confianza = datos_inspeccion.confianza
+    multiples_defectos = datos_inspeccion.multiples_defectos
+    
+    flujo_gas = datos_proceso.flujo_gas_l_min
+    material_base = datos_proceso.material_base
+    tipo_junta = datos_proceso.tipo_junta
 
     # --- Lista de mensajes y nivel alcanzado ---
+    # En lugar de imprimir, guardamos todo en esta lista
     mensajes = []
-    nivel_alcanzado = None
+    nivel_alcanzado = "Inicio" # Default
 
     # ----- Nivel 0: Clasificación -----
     motor_clasif = Clasificacion()
@@ -57,9 +34,10 @@ def main():
     motor_clasif.declare(InspeccionFactClasif(R=R))
     motor_clasif.run()
 
+    # Modificado: Capturamos los hechos 'ClasificacionFact'
     for fact in motor_clasif.facts.values():
-        if "clasificacion" in str(type(fact)).lower():
-            mensajes.append(f"Clasificación: {fact}")
+        if isinstance(fact, ClasificacionFact):
+            mensajes.append(fact['descripcion'])
             nivel_alcanzado = "Clasificación"
 
     # ----- Nivel 1: Diagnóstico -----
@@ -77,9 +55,10 @@ def main():
     for fact in motor_diag.facts.values():
         if isinstance(fact, Diagnostico):
             diag_fact = fact
+            # Modificado: Usamos .append() en lugar de print()
             mensajes.append(f"Diagnóstico: {fact['descripcion']}")
             nivel_alcanzado = "Diagnóstico"
-            break
+            break # Asumimos un solo diagnóstico
 
     # ----- Nivel 2: Causa Probable -----
     causa_fact = None
@@ -97,9 +76,10 @@ def main():
         for fact in motor_causa.facts.values():
             if isinstance(fact, CausaProbable):
                 causa_fact = fact
+                # Modificado: Usamos .append()
                 mensajes.append(f"Causa probable: {fact['descripcion']}")
                 nivel_alcanzado = "Causa probable"
-                break
+                break # Asumimos una sola causa
 
     # ----- Nivel 3: Recomendación de acción -----
     if causa_fact:
@@ -107,17 +87,21 @@ def main():
         motor_reco.reset()
         motor_reco.declare(CausaProbableFact(descripcion=causa_fact["descripcion"]))
         motor_reco.run()
-        nivel_alcanzado = "Recomendación"
+        
+        # Modificado: Capturamos los hechos 'Recomendacion'
+        recomendacion_encontrada = False
+        for fact in motor_reco.facts.values():
+            if isinstance(fact, Recomendacion):
+                mensajes.append(f"Recomendación: {fact['descripcion']}")
+                recomendacion_encontrada = True
+        
+        if recomendacion_encontrada:
+            nivel_alcanzado = "Recomendación"
 
-    # ----- Resultados finales -----
-    print("\n=== RESULTADOS ===")
-    if mensajes:
-        for m in mensajes:
-            print(f"- {m}")
-        print(f"\nEl sistema llegó hasta el nivel: {nivel_alcanzado}")
-    else:
-        print("No se identificaron reglas aplicables con los datos ingresados.")
+    # --- Resultados finales ---
+    # Devolvemos los mensajes y el nivel para que Streamlit los muestre
+    return mensajes, nivel_alcanzado
 
 
-if __name__ == "__main__":
-    main()
+# Eliminamos el bloque 'if __name__ == "__main__":' 
+# ya que 'soldadura.py' será ahora el punto de entrada.

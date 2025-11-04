@@ -6,6 +6,11 @@ class ProcesoFact(Fact):
 class InspeccionFact(Fact):
     R = Field(float, mandatory=True)
 
+# Añadimos un Hecho de salida para guardar el resultado
+class ClasificacionFact(Fact):
+    """Hecho de salida: Clasificación generada."""
+    descripcion = Field(str, mandatory=True)
+
 class Clasificacion(KnowledgeEngine):
 
     @Rule(ProcesoFact(flujo_gas=P(lambda x: x < 5)))

@@ -20,7 +20,7 @@ class MotorRecomendaciones(KnowledgeEngine):
         mensaje = ("Verificar conexiones de gas, ajustar flujo, "
                    "cambiar mangueras dañadas, verificar que el gas no esté contaminado")
         self.declare(Recomendacion(descripcion=mensaje))
-        print(f"Recomendación: {mensaje}")
+#        print(f"Recomendación: {mensaje}")
 
 
     @Rule(CausaProbableFact(descripcion=MATCH.causa),
@@ -28,7 +28,7 @@ class MotorRecomendaciones(KnowledgeEngine):
     def limpieza_secado(self):
         mensaje = "Limpiar superficie con cepillo de acero, secar material antes de soldar"
         self.declare(Recomendacion(descripcion=mensaje))
-        print(f"Recomendación: {mensaje}")
+#        print(f"Recomendación: {mensaje}")
 
 
     @Rule(CausaProbableFact(descripcion=MATCH.causa),
@@ -36,4 +36,4 @@ class MotorRecomendaciones(KnowledgeEngine):
     def revision_junta(self):
         mensaje = "Revisar plano de junta, alineación y planificar soldadura conforme norma"
         self.declare(Recomendacion(descripcion=mensaje))
-        print(f"Recomendación: {mensaje}")
+#        print(f"Recomendación: {mensaje}")
