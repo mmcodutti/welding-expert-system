@@ -1,4 +1,5 @@
 import streamlit as st
+from experta import *
 from base import DatosInspeccion, DatosProceso, calcular_tamaño_relativo
 from main import ejecutar_sistema_experto # Importamos la función refactorizada
 
