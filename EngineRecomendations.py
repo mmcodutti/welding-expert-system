@@ -1,6 +1,5 @@
 from experta import *
 
-
 class CausaProbableFact(Fact):
     """Hecho con la causa probable detectada en el nivel anterior."""
     descripcion = Field(str, mandatory=True)

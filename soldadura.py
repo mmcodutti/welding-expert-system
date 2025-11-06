@@ -1,7 +1,9 @@
+# Contenido de: soldadura.py
 import streamlit as st
-from experta import *
+# --- NUEVOS IMPORTS ---
 from base import DatosInspeccion, DatosProceso, calcular_tamaño_relativo
 from main import ejecutar_sistema_experto # Importamos la función refactorizada
+# --- FIN NUEVOS IMPORTS ---
 
 # --- Configuración de la Página ---
 st.set_page_config(layout="wide", page_title="Registro de Soldadura")
@@ -16,30 +18,25 @@ st.header("1. Detalles del Defecto")
 col1, col2 = st.columns(2)
 
 with col1:
-    # id soldadura (alfanumérico)
     id_soldadura = st.text_input("ID de Soldadura", help="Ingrese el identificador alfanumérico de la junta.")
 
 with col2:
-    # tipo de defecto (desplegable)
     opciones_defecto = ["Porosidad", "Discontinuidad", "Exceso de material", "Manchas"]
     tipo_defecto = st.selectbox("Tipo de Defecto", options=opciones_defecto)
 
 st.markdown("##### Coordenadas del Defecto (en mm)")
-col_x1, col_x2, col_y1, col_y2 = st.columns(4)
+col_x1, col_x2, col_y1, col_y2, col_area = st.columns(5) # Añadida columna para área
 
 with col_x1:
-    # xmin (entero)
     xmin = st.number_input("X min", min_value=0, step=1, format="%d")
 with col_x2:
-    # xmax (entero)
     xmax = st.number_input("X max", min_value=0, step=1, format="%d")
 with col_y1:
-    # ymin (entero)
     ymin = st.number_input("Y min", min_value=0, step=1, format="%d")
 with col_y2:
-    # ymax (entero)
     ymax = st.number_input("Y max", min_value=0, step=1, format="%d")
 
+# --- CAMPO NUEVO REQUERIDO ---
 with col_area:
     area_soldadura = st.number_input("Área Total (mm²)", min_value=1.0, value=10000.0, help="Área total de la soldadura usada para calcular R.")
 
@@ -50,10 +47,9 @@ with conf1:
     confianza = st.slider("Nivel de Confianza (Probabilidad)", 
                       min_value=0.0, 
                       max_value=1.0, 
-                      value=0.75,  # Un default razonable
+                      value=0.75,
                       step=0.01)
 
-# multiples defectos (Selector si/no)
 multiples_defectos = st.checkbox("¿Existen múltiples defectos en esta ID?", value=False)
 
 st.divider()
@@ -64,52 +60,24 @@ st.header("2. Parámetros del Proceso de Soldadura")
 col_p1, col_p2, col_p3 = st.columns(3)
 
 with col_p1:
-    # tipo gas (desplegable)
     opciones_gas = ["Ar+CO2", "CO2", "Helio", "C2H2", "Propano", "Butano", "Argón Puro"]
-    tipo_gas = st.selectbox(
-        "Tipo de Gas de Protección/Combustible", 
-        options=opciones_gas, 
-        index=opciones_gas.index("Ar+CO2")  # Default
-    )
-
-    # material base (desplegable)
+    tipo_gas = st.selectbox("Tipo de Gas", options=opciones_gas, index=opciones_gas.index("Ar+CO2"))
+    
     opciones_material = ["Acero inoxidable", "Acero al carbono", "Aluminio", "Aleación de níquel", "Titanio"]
-    material_base = st.selectbox(
-        "Material Base", 
-        options=opciones_material,
-        index=opciones_material.index("Acero inoxidable")  # Default
-    )
+    material_base = st.selectbox("Material Base", options=opciones_material, index=opciones_material.index("Acero inoxidable"))
 
 with col_p2:
-    # flujo de gas (slider)
-    flujo_gas = st.slider(
-        "Flujo de Gas (l/m)", 
-        min_value=0, 
-        max_value=30, 
-        value=12,  # Default
-        step=1
-    )
-
-    # junta (desplegable)
+    flujo_gas = st.slider("Flujo de Gas (l/m)", min_value=0, max_value=30, value=12, step=1)
+    
     opciones_junta = ["V-groove", "Bevel groove", "Single Bevel", "Square groove", "U-groove", "J-groove"]
-    tipo_junta = st.selectbox(
-        "Tipo de Junta",
-        options=opciones_junta,
-        index=opciones_junta.index("V-groove")  # Default
-    )
+    tipo_junta = st.selectbox("Tipo de Junta", options=opciones_junta, index=opciones_junta.index("V-groove"))
 
 with col_p3:
-    # tipo de soldadura (desplegable)
     opciones_tipo_soldadura = ["GMAW", "SMAW", "GTAW (TIG)", "FCAW", "SAW"]
-    tipo_soldadura = st.selectbox(
-        "Tipo de Soldadura",
-        options=opciones_tipo_soldadura,
-        index=opciones_tipo_soldadura.index("GMAW")  # Default
-    )
+    tipo_soldadura = st.selectbox("Tipo de Soldadura", options=opciones_tipo_soldadura, index=opciones_tipo_soldadura.index("GMAW"))
 
 st.divider()
 
-# --- (Opcional) Botón para mostrar los datos ---
 # --- LÓGICA DEL BOTÓN MODIFICADA ---
 if st.button("Ejecutar Diagnóstico", type="primary"):
     
